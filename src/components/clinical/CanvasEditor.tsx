@@ -8,6 +8,7 @@ import styles from './CanvasEditor.module.css';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 const MAX_W = 1920;
 const MAX_H = 1440;
@@ -15,11 +16,16 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.25;
 
-export const CanvasEditor: React.FC = () => {
+interface CanvasEditorProps {
+  onImageChange?: (hasImage: boolean) => void;
+}
+
+export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => {
   const fabricCanvasElRef = useRef<HTMLCanvasElement>(null);
   const mediapipeCanvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const [canvasSize, setCanvasSize] = useState({ width: MAX_W, height: MAX_H });
   const [loading, setLoading] = useState(false);
@@ -425,8 +431,9 @@ export const CanvasEditor: React.FC = () => {
       setLandmarksVisible(false);
       resetView();
       setHasImage(true);
+      onImageChange?.(true);
     },
-    [applyCanvasSize, resetView]
+    [applyCanvasSize, resetView, onImageChange]
   );
 
   const handleToggleLandmarks = useCallback(async () => {
@@ -1028,8 +1035,8 @@ export const CanvasEditor: React.FC = () => {
   const hasCachedLandmarks = cachedLandmarksRef.current !== null;
 
   return (
-    <div className={styles.workspace}>
-      <aside className={styles.sidebar}>
+    <div className={`${styles.workspace} ${isMobile ? styles.workspaceMobile : ''}`}>
+      <aside className={isMobile ? styles.toolbarMobile : styles.sidebar}>
         <div className={styles.toolsGroup}>
           <label className={styles.uploadLabel}>
             Upload Foto

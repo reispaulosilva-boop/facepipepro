@@ -27,6 +27,24 @@
 
   /* Spacing */
   --space-unit: 8px;
+
+  /* Responsive Helpers */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --header-height: 64px;
+  --toolbar-height: 72px;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
 }
 
 * {
