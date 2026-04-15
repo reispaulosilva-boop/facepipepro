@@ -1,0 +1,38 @@
+.container {
+  display: flex ;
+  flex-direction: column ;
+  gap: 6px ;
+  width: 100% ;
+}
+
+.label {
+  font-size: 13px ;
+  color: #8b949e ;
+  font-weight: 500 ;
+}
+
+.input {
+  background: rgba(255, 255, 255, 0.05) ;
+  border: 1px solid rgba(255, 255, 255, 0.1) ;
+  padding: 12px ;
+  border-radius: 8px ;
+  color: #ffffff ;
+  font-size: 14px ;
+  transition: all 0.2s ease ;
+  outline: none ;
+}
+
+.input:focus {
+  border-color: #58a6ff ;
+  background: rgba(255, 255, 255, 0.08) ;
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1) ;
+}
+
+.error {
+  border-color: #f85149 ;
+}
+
+.errorText {
+  font-size: 12px ;
+  color: #f85149 ;
+}

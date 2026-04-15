@@ -1,0 +1,154 @@
+.container {
+  min-height: 100vh ;
+  background: var(--bg-primary) ;
+  display: flex ;
+  flex-direction: column ;
+}
+
+.header {
+  padding: 20px 40px ;
+  display: flex ;
+  justify-content: space-between ;
+  align-items: center ;
+  border-bottom: 1px solid var(--border-primary) ;
+  background: rgba(10, 10, 10, 0.8) ;
+  backdrop-filter: blur(10px) ;
+  position: sticky ;
+  top: 0 ;
+  z-index: 100 ;
+}
+
+.logo {
+  font-size: 20px ;
+  font-weight: 800 ;
+  color: #ffffff ;
+}
+
+.pro {
+  color: #58a6ff ;
+  font-weight: 400 ;
+}
+
+.userInfo {
+  font-size: 14px ;
+  color: #8b949e ;
+  display: flex ;
+  align-items: center ;
+  gap: 16px ;
+}
+
+.signOutBtn {
+  background: none ;
+  border: 1px solid var(--border-primary) ;
+  color: #8b949e ;
+  font-size: 13px ;
+  padding: 6px 14px ;
+  border-radius: 8px ;
+  cursor: pointer ;
+  transition: all 0.2s ;
+}
+
+.signOutBtn:hover {
+  border-color: rgba(88, 166, 255, 0.4) ;
+  color: #ffffff ;
+}
+
+.main {
+  flex: 1 ;
+  max-width: 1200px ;
+  margin: 0 auto ;
+  padding: 80px 40px ;
+  width: 100% ;
+}
+
+.welcome {
+  margin-bottom: 60px ;
+  text-align: center ;
+}
+
+.welcome h1 {
+  font-size: 36px ;
+  font-weight: 700 ;
+  margin-bottom: 16px ;
+  color: #ffffff ;
+}
+
+.welcome p {
+  font-size: 18px ;
+  color: #8b949e ;
+}
+
+.grid {
+  display: grid ;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) ;
+  gap: 32px ;
+}
+
+.card {
+  background: var(--surface-primary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 24px ;
+  padding: 40px ;
+  display: flex ;
+  flex-direction: column ;
+  gap: 24px ;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) ;
+  cursor: pointer ;
+  position: relative ;
+  overflow: hidden ;
+}
+
+.card:hover {
+  transform: translateY(-8px) ;
+  border-color: rgba(88, 166, 255, 0.4) ;
+  background: var(--surface-secondary) ;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) ;
+}
+
+.cardIcon {
+  font-size: 40px ;
+  margin-bottom: 8px ;
+}
+
+.cardContent h2 {
+  font-size: 24px ;
+  font-weight: 600 ;
+  margin-bottom: 12px ;
+  color: #ffffff ;
+}
+
+.cardContent p {
+  font-size: 15px ;
+  color: #8b949e ;
+  line-height: 1.6 ;
+}
+
+.cardFooter {
+  margin-top: auto ;
+  font-size: 14px ;
+  font-weight: 600 ;
+  color: #58a6ff ;
+  display: flex ;
+  align-items: center ;
+}
+
+.cardDisabled {
+  cursor: default ;
+  opacity: 0.5 ;
+}
+
+.cardDisabled:hover {
+  transform: none ;
+  border-color: var(--border-primary) ;
+  background: var(--surface-primary) ;
+  box-shadow: none ;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 15px 20px ;
+  }
+  .main {
+    padding: 40px 20px ;
+  }
+}

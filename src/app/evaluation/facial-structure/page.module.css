@@ -1,0 +1,62 @@
+.container {
+  height: 100vh ;
+  display: flex ;
+  flex-direction: column ;
+  background: var(--bg-primary) ;
+}
+
+.header {
+  padding: 12px 24px ;
+  display: flex ;
+  justify-content: space-between ;
+  align-items: center ;
+  background: var(--surface-primary) ;
+  border-bottom: 1px solid var(--border-primary) ;
+}
+
+.left {
+  display: flex ;
+  align-items: center ;
+  gap: 16px ;
+}
+
+.backBtn {
+  font-size: 20px ;
+  color: #8b949e ;
+  padding: 8px ;
+  border-radius: 8px ;
+  transition: all 0.2s ;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.05) ;
+  color: #ffffff ;
+}
+
+.titleInfo h1 {
+  font-size: 16px ;
+  font-weight: 600 ;
+  color: #ffffff ;
+}
+
+.titleInfo p {
+  font-size: 12px ;
+  color: #8b949e ;
+}
+
+.logo {
+  font-size: 16px ;
+  font-weight: 800 ;
+  color: #ffffff ;
+}
+
+.pro {
+  color: #58a6ff ;
+  font-weight: 400 ;
+}
+
+.main {
+  flex: 1 ;
+  padding: 24px ;
+  overflow: hidden ;
+}

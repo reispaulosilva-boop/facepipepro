@@ -1,0 +1,336 @@
+.workspace {
+  display: flex ;
+  flex-direction: row ;
+  height: 100% ;
+  gap: 16px ;
+}
+
+.sidebar {
+  display: flex ;
+  flex-direction: column ;
+  gap: 12px ;
+  width: 168px ;
+  flex-shrink: 0 ;
+  padding: 16px 12px ;
+  background: var(--surface-primary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 12px ;
+  align-items: stretch ;
+}
+
+.sidebarDivider {
+  height: 1px ;
+  background: var(--border-primary) ;
+  margin: 4px 0 ;
+}
+
+/* ── Anatomia ───────────────────────────────────────────── */
+.anatomiaWrapper {
+  display: flex ;
+  flex-direction: column ;
+  gap: 0 ;
+}
+
+.anatomiaBtn {
+  display: flex ;
+  align-items: center ;
+  justify-content: space-between ;
+  width: 100% ;
+  padding: 10px 12px ;
+  background: var(--surface-secondary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 8px ;
+  color: #ffffff ;
+  font-size: 14px ;
+  font-weight: 500 ;
+  cursor: pointer ;
+  transition: all 0.2s ;
+}
+
+.anatomiaBtn:hover:not(:disabled) {
+  background: var(--surface-accent) ;
+  border-color: #58a6ff ;
+}
+
+.anatomiaBtn:disabled {
+  opacity: 0.4 ;
+  cursor: default ;
+}
+
+.anatomiaBtnOpen {
+  border-bottom-left-radius: 0 ;
+  border-bottom-right-radius: 0 ;
+  border-color: #58a6ff ;
+  color: #58a6ff ;
+  background: rgba(88, 166, 255, 0.08) ;
+}
+
+.anatomiaChevron {
+  font-size: 10px ;
+  opacity: 0.7 ;
+}
+
+.anatomiaMenu {
+  display: flex ;
+  flex-direction: column ;
+  border: 1px solid #58a6ff ;
+  border-top: none ;
+  border-bottom-left-radius: 8px ;
+  border-bottom-right-radius: 8px ;
+  overflow: hidden ;
+}
+
+.anatomiaItem {
+  width: 100% ;
+  padding: 9px 12px ;
+  background: rgba(88, 166, 255, 0.05) ;
+  border: none ;
+  border-top: 1px solid rgba(88, 166, 255, 0.15) ;
+  color: #c9d1d9 ;
+  font-size: 13px ;
+  font-weight: 400 ;
+  text-align: left ;
+  cursor: pointer ;
+  transition: background 0.15s, color 0.15s ;
+}
+
+.anatomiaItem:first-child {
+  border-top: none ;
+}
+
+.anatomiaItem:hover:not(:disabled) {
+  background: rgba(88, 166, 255, 0.15) ;
+  color: #ffffff ;
+}
+
+.anatomiaItem:disabled {
+  opacity: 0.4 ;
+  cursor: default ;
+}
+
+.anatomiaItemActive {
+  background: rgba(88, 166, 255, 0.18) !important ;
+  color: #58a6ff !important ;
+  border-left: 2px solid #58a6ff ;
+}
+
+.sliderGroup {
+  padding: 10px 12px ;
+  background: rgba(88, 166, 255, 0.03) ;
+  display: flex ;
+  flex-direction: column ;
+  gap: 8px ;
+  border-top: 1px solid rgba(88, 166, 255, 0.1) ;
+}
+
+.sliderLabel {
+  display: flex ;
+  justify-content: space-between ;
+  font-size: 10px ;
+  color: #8b949e ;
+  text-transform: uppercase ;
+  letter-spacing: 0.5px ;
+  font-weight: 600 ;
+}
+
+.sliderInput {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(88, 166, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sliderInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #58a6ff;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s;
+  box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+}
+
+.sliderInput::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.anatomiaActionBtn {
+  width: 100% ;
+  padding: 6px 12px ;
+  background: transparent ;
+  border: none ;
+  color: #8b949e ;
+  font-size: 11px ;
+  text-align: left ;
+  cursor: pointer ;
+  transition: color 0.2s ;
+  text-decoration: underline ;
+  text-underline-offset: 3px ;
+}
+
+.anatomiaActionBtn:hover {
+  color: #58a6ff ;
+}
+
+.toolsGroup {
+  display: flex ;
+  flex-direction: column ;
+  gap: 10px ;
+}
+
+.uploadLabel {
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  padding: 10px 12px ;
+  background: var(--surface-secondary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 8px ;
+  color: #ffffff ;
+  cursor: pointer ;
+  font-size: 14px ;
+  font-weight: 500 ;
+  transition: all 0.2s ;
+  text-align: center ;
+}
+
+.uploadLabel:hover {
+  background: var(--surface-accent) ;
+  border-color: #58a6ff ;
+}
+
+.btnActive {
+  background: rgba(88, 166, 255, 0.15) !important ;
+  border-color: #58a6ff !important ;
+  color: #58a6ff !important ;
+}
+
+.statusBadge {
+  font-size: 11px ;
+  color: #30ff30 ;
+  background: rgba(48, 255, 48, 0.08) ;
+  border: 1px solid rgba(48, 255, 48, 0.25) ;
+  padding: 4px 8px ;
+  border-radius: 999px ;
+  font-weight: 500 ;
+  transition: all 0.2s ;
+  text-align: center ;
+}
+
+.zoomControls {
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+  gap: 4px ;
+  flex-wrap: wrap ;
+}
+
+.zoomBtn {
+  width: 32px ;
+  height: 32px ;
+  background: var(--surface-secondary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 6px ;
+  color: #ffffff ;
+  font-size: 18px ;
+  line-height: 1 ;
+  cursor: pointer ;
+  transition: all 0.2s ;
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  border-color: #58a6ff ;
+  color: #58a6ff ;
+}
+
+.zoomBtn:disabled {
+  opacity: 0.35 ;
+  cursor: default ;
+}
+
+.zoomLabel {
+  min-width: 44px ;
+  text-align: center ;
+  font-size: 13px ;
+  color: #8b949e ;
+  font-variant-numeric: tabular-nums ;
+}
+
+.zoomReset {
+  padding: 0 10px ;
+  height: 32px ;
+  background: var(--surface-secondary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 6px ;
+  color: #8b949e ;
+  font-size: 12px ;
+  font-weight: 600 ;
+  cursor: pointer ;
+  transition: all 0.2s ;
+}
+
+.zoomReset:hover:not(:disabled) {
+  border-color: #58a6ff ;
+  color: #58a6ff ;
+}
+
+.zoomReset:disabled {
+  opacity: 0.35 ;
+  cursor: default ;
+}
+
+.statusBadgeOff {
+  color: #8b949e ;
+  background: rgba(139, 148, 158, 0.08) ;
+  border-color: rgba(139, 148, 158, 0.25) ;
+}
+
+.canvasContainer {
+  flex: 1 ;
+  display: flex ;
+  justify-content: center ;
+  align-items: center ;
+  background: #000000 ;
+  border-radius: 12px ;
+  border: 1px solid var(--border-primary) ;
+  overflow: hidden ;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5) ;
+  user-select: none ;
+}
+
+/* Stacking context for the two canvas layers */
+.canvasWrapper {
+  position: relative ;
+}
+
+/* Layer 1 — MediaPipe canvas: photo + DrawingUtils landmark overlay */
+.mediapipeCanvas {
+  display: block ;
+  position: absolute ;
+  top: 0 ;
+  left: 0 ;
+  z-index: 1 ;
+}
+
+/* Layer 2 — Fabric.js canvas sits on top for clinical annotations */
+.fabricCanvas {
+  position: absolute ;
+  top: 0 ;
+  left: 0 ;
+  z-index: 2 ;
+}
+
+/* Fabric wraps our canvas in .canvas-container — keep it in the stack */
+.canvasWrapper :global(.canvas-container) {
+  position: absolute !important ;
+  top: 0 !important ;
+  left: 0 !important ;
+  z-index: 2 !important ;
+}
