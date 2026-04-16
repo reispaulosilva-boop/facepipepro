@@ -5,10 +5,12 @@ pydantic>=2.0.0
 # OpenCV para renderização/recorte de máscara
 opencv-python-headless>=4.8.0
 
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # Bibliotecas Base de Deep Learning 
 # (Serão refinadas quando implementarmos Melasma e Rugas)
-torch>=2.0.0+cpu
-torchvision>=0.15.0+cpu
+torch>=2.0.0
+torchvision>=0.15.0
 
 # Para o modelo de Rugas / outras dependências extras necessárias
 numpy>=1.24.0
