@@ -1,10 +1,10 @@
 from typing import Dict, Any
 
 def analyze_melasma_cam(image_path: str) -> Dict[str, Any]:
-    \"\"\"
+    """
     Recebe a foto facial, carrega o Classificador (ex: VGG16/ResNet do amirdallalan) 
     e gera o mapa de ativação gradiente (Grad-CAM) das hiper-pigmentações.
-    \"\"\"
+    """
     # TODO: Inicializar rede PyTorch, carregar pesos .pth
     # TODO: Aplicar hook no forward pass para extrair features e gerar HeatMap
     

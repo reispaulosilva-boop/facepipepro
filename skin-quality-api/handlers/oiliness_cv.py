@@ -3,10 +3,10 @@ import numpy as np
 from typing import Dict, Any
 
 def analyze_oiliness_cv(image_path: str) -> Dict[str, Any]:
-    \"\"\"
+    """
     Recebe uma imagem, realiza análise de brilho (glare) e reflexão por OpenCV,
     idealmente usando máscara na Zona T para análise demográfica.
-    \"\"\"
+    """
     # TODO: Ler imagem utilizando OpenCV
     # img = cv2.imread(image_path)
     # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

@@ -60,10 +60,10 @@ async def analyze_rosacea(file: UploadFile = File(...)):
 
 @app.post("/analyze/all")
 async def analyze_all(file: UploadFile = File(...)):
-    \"\"\"
+    """
     Controller Principal: Executa todos os Handlers de forma otimizada
     sobre a mesma imagem e retorna um payload clínico consolidado.
-    \"\"\"
+    """
     image_path = "temp_image.jpg"
     
     # Executamos as funções modulares

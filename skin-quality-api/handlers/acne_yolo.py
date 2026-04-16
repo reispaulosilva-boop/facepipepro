@@ -1,10 +1,10 @@
 from typing import Dict, Any
 
 def analyze_acne_yolov8(image_path: str) -> Dict[str, Any]:
-    \"\"\"
+    """
     Recebe o caminho de uma imagem, processa com ultralytics/YOLOv8
     e retorna as bounding boxes das espinhas detectadas.
-    \"\"\"
+    """
     # TODO: Inicializar a rede neural YOLO() com o arquivo .pt do dobariyz/facefixer
     # results = model(image_path)
     
