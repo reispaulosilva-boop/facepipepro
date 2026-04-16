@@ -25,8 +25,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia o restante da API para o contêiner
 COPY . .
 
-# Expõe a porta do servidor web
-EXPOSE 8000
+# Expõe a porta do servidor web (Render usa 10000 por padrão)
+EXPOSE 10000
 
 # Executa o FastAPI via Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
