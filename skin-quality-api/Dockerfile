@@ -7,8 +7,10 @@ WORKDIR /app
 # Instala ferramentas básicas do sistema caso seja necessário compilar algo como OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
+    libsm6 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Configura repositório para baixar a versão lite (CPU-only) do PyTorch, economizando centenas de MBs
