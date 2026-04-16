@@ -1,0 +1,130 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background, #0a0a0a);
+  color: var(--foreground, #ededed);
+  font-family: inherit; /* Segue a arvore de tipografia raiz (Cormorant nas headings) */
+}
+
+.header {
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid rgba(255,255,255, 0.05);
+}
+
+.title {
+  font-family: var(--font-cormorant), serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--eucalipto-profundo, #4a6d5d); 
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.workspace {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 80px);
+}
+
+.canvasArea {
+  flex: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 1px solid rgba(255,255,255, 0.05);
+  padding: 2rem;
+}
+
+.uploadPrompt {
+  text-align: center;
+  border: 1px dashed rgba(255,255,255, 0.2);
+  padding: 4rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.uploadPrompt:hover {
+  border-color: var(--eucalipto-profundo, #4a6d5d);
+}
+
+.uploadBtn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--eucalipto-profundo, #4a6d5d);
+  color: var(--eucalipto-profundo, #4a6d5d);
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.resultsArea {
+  flex: 1;
+  min-width: 350px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(25, 25, 25, 0.4);
+}
+
+.panelHeader h2 {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 400;
+  font-size: 22px;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--eucalipto-profundo, #4a6d5d);
+  padding-bottom: 0.5rem;
+}
+
+.panelHeader p {
+  font-size: 13px;
+  opacity: 0.5;
+}
+
+.parametersList {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.parameterItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(255,255,255, 0.02);
+  border-radius: 4px;
+  border-left: 2px solid rgba(255,255,255, 0.1);
+}
+
+.pendingBadge {
+  font-size: 11px;
+  text-transform: uppercase;
+  background-color: rgba(255,255,255, 0.05);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+
+.analyzeButton {
+  margin-top: auto;
+  padding: 1.2rem;
+  background-color: var(--eucalipto-profundo, #4a6d5d);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.5;
+}

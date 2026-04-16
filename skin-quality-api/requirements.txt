@@ -1,0 +1,18 @@
+fastapi>=0.103.0
+uvicorn>=0.23.2
+python-multipart>=0.0.6
+pydantic>=2.0.0
+# OpenCV para renderização/recorte de máscara
+opencv-python-headless>=4.8.0
+
+# Bibliotecas Base de Deep Learning 
+# (Serão refinadas quando implementarmos Melasma e Rugas)
+torch>=2.0.0+cpu
+torchvision>=0.15.0+cpu
+
+# Para o modelo de Rugas / outras dependências extras necessárias
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# Ultralytics para o modelo YOLOv8 (Acne - Opção A)
+ultralytics>=8.0.0
