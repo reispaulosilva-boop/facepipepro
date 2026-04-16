@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as fabric from 'fabric';
 import { DrawingUtils, FaceLandmarker, type NormalizedLandmark, type ImageSource } from '@mediapipe/tasks-vision';
 import { mediaPipeService } from '@/services/mediapipe';
+import { calculateMorphometrics, classifyFaceShape, distance, getABFaceTreatmentPlan, type ClassificationReport } from '@/lib/morphometry';
 import styles from './CanvasEditor.module.css';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
@@ -35,6 +36,13 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [anatomiaOpen, setAnatomiaOpen] = useState(false);
+  const [metricasOpen, setMetricasOpen] = useState(false);
+  const [morphoResults, setMorphoResults] = useState<ClassificationReport | null>(null);
+  const [biziVisible, setBiziVisible] = useState(false);
+  const [bigoVisible, setBigoVisible] = useState(false);
+  const [formaVisible, setFormaVisible] = useState(false);
+  const [assimetriaVisible, setAssimetriaVisible] = useState(false);
+  const [treatmentVisible, setTreatmentVisible] = useState(false);
   const [ossosVisible, setOssosVisible] = useState(false);
   const [ossosOpacity, setOssosOpacity] = useState(0.2);
   const [ossosRotation, setOssosRotation] = useState(0);
@@ -70,6 +78,11 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
   const fatFabricRef = useRef<fabric.Image | null>(null);
   const vasosFabricRef = useRef<fabric.Image | null>(null);
   const nervosFabricRef = useRef<fabric.Image | null>(null);
+  const biziFabricRef = useRef<fabric.Object | null>(null);
+  const bigoFabricRef = useRef<fabric.Object | null>(null);
+  const formaFabricRef = useRef<fabric.Object | null>(null);
+  const assimetriaFabricRef = useRef<fabric.Group | null>(null);
+  const treatmentFabricRef = useRef<fabric.Group | null>(null);
 
   const musculosImgRef = useRef<HTMLImageElement | null>(null);
   const musculosProcessedRef = useRef<HTMLCanvasElement | null>(null);
@@ -377,7 +390,27 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
     du.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,   { color: '#30cfcf', lineWidth: 2 });
     du.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,  { color: '#30cfcf', lineWidth: 2 });
     du.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS,        { color: '#ff6b6b', lineWidth: 2 });
-    du.drawLandmarks(landmarks, { color: '#58a6ff', fillColor: '#58a6ff', lineWidth: 1, radius: 1.5 });
+    du.drawLandmarks(landmarks, { color: '#58a6ff', fillColor: '#58a6ff', lineWidth: 0.5, radius: 0.75 });
+
+    // Desenha os índices de cada landmark
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    landmarks.forEach((landmark, index) => {
+      const x = landmark.x * mpCanvas.width;
+      const y = landmark.y * mpCanvas.height;
+      ctx.fillText(index.toString(), x + 2, y - 2);
+    });
+
+    // Reset da sombra
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }, [drawPhoto]);
 
   const resetView = useCallback(() => {
@@ -429,6 +462,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
       setVasosVisible(false);
       setNervosVisible(false);
       setLandmarksVisible(false);
+      setMorphoResults(null);
       resetView();
       setHasImage(true);
       onImageChange?.(true);
@@ -925,6 +959,539 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
     }
   }, []);
 
+  const handleToggleBizi = useCallback(async () => {
+    if (biziVisible) {
+      setBiziVisible(false);
+      if (biziFabricRef.current) {
+        fabricRef.current?.remove(biziFabricRef.current);
+        biziFabricRef.current = null;
+      }
+      return;
+    }
+
+    if (!cachedLandmarksRef.current) {
+      const img = imageRef.current;
+      if (!img) return;
+      setLoading(true);
+      try {
+        const result = await mediaPipeService.detect(img);
+        if (result?.faceLandmarks?.length) {
+          cachedLandmarksRef.current = result.faceLandmarks[0];
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (!fabricRef.current || !cachedLandmarksRef.current) return;
+
+    const W = canvasSize.width;
+    const H = canvasSize.height;
+    const landmarks = cachedLandmarksRef.current;
+    
+    // Morfometria base
+    const morpho = calculateMorphometrics(landmarks);
+    
+    // Configurações 'Premium Glow'
+    const GLOW_COLOR = '#ff0000'; // Vermelho Puro
+    const DOT_SIZE = 4;
+
+    const x1 = landmarks[234].x * W;
+    const y1 = landmarks[234].y * H;
+    const x2 = landmarks[454].x * W;
+    const y2 = landmarks[454].y * H;
+
+    // Linha Bizigomática (Referência) - Mais grossa e brilhante
+    const line = new fabric.Line([x1, y1, x2, y2], {
+      stroke: GLOW_COLOR,
+      strokeWidth: 4,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: GLOW_COLOR, blur: 15 })
+    });
+
+    const dot1 = new fabric.Circle({ left: x1, top: y1, radius: DOT_SIZE, fill: '#fff', originX: 'center', originY: 'center', selectable: false, evented: false, stroke: GLOW_COLOR, strokeWidth: 2 });
+    const dot2 = new fabric.Circle({ left: x2, top: y2, radius: DOT_SIZE, fill: '#fff', originX: 'center', originY: 'center', selectable: false, evented: false, stroke: GLOW_COLOR, strokeWidth: 2 });
+
+    // Exibição discreta do valor (1.00 ou Distancia se preferir, mas Ratio é o padrão clínico)
+    const label = new fabric.Text('REF 1.00', {
+      left: (x1 + x2) / 2,
+      top: (y1 + y2) / 2 - 18,
+      fontSize: 12,
+      fontFamily: 'Inter',
+      fontWeight: '900',
+      fill: '#fff',
+      stroke: GLOW_COLOR,
+      strokeWidth: 0.5,
+      originX: 'center',
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: '#000', blur: 4 })
+    });
+
+    const group = new fabric.Group([line, dot1, dot2, label], { selectable: false, evented: false });
+    fabricRef.current.add(group);
+    biziFabricRef.current = group;
+    setBiziVisible(true);
+  }, [biziVisible, canvasSize, hasImage]);
+
+  const handleToggleBigo = useCallback(async () => {
+    if (bigoVisible) {
+      setBigoVisible(false);
+      if (bigoFabricRef.current) {
+        fabricRef.current?.remove(bigoFabricRef.current);
+        bigoFabricRef.current = null;
+      }
+      return;
+    }
+
+    if (!cachedLandmarksRef.current) {
+      const img = imageRef.current;
+      if (!img) return;
+      setLoading(true);
+      try {
+        const result = await mediaPipeService.detect(img);
+        if (result?.faceLandmarks?.length) {
+          cachedLandmarksRef.current = result.faceLandmarks[0];
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (!fabricRef.current || !cachedLandmarksRef.current) return;
+
+    const W = canvasSize.width;
+    const H = canvasSize.height;
+    const landmarks = cachedLandmarksRef.current;
+    
+    const morpho = calculateMorphometrics(landmarks);
+    const r2Value = morpho ? morpho.r2.toFixed(2) : '--';
+    
+    const GLOW_COLOR = '#ccff00'; // Verde Limão
+    const DOT_SIZE = 4;
+
+    const x1 = landmarks[172].x * W;
+    const y1 = landmarks[172].y * H;
+    const x2 = landmarks[397].x * W;
+    const y2 = landmarks[397].y * H;
+
+    // Linha Bigonial - Verde Limão Vibrante
+    const line = new fabric.Line([x1, y1, x2, y2], {
+      stroke: GLOW_COLOR,
+      strokeWidth: 4,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: GLOW_COLOR, blur: 12 })
+    });
+
+    const dot1 = new fabric.Circle({ left: x1, top: y1, radius: DOT_SIZE, fill: '#fff', originX: 'center', originY: 'center', selectable: false, evented: false, stroke: GLOW_COLOR, strokeWidth: 2 });
+    const dot2 = new fabric.Circle({ left: x2, top: y2, radius: DOT_SIZE, fill: '#fff', originX: 'center', originY: 'center', selectable: false, evented: false, stroke: GLOW_COLOR, strokeWidth: 2 });
+
+    const label = new fabric.Text(`R2: ${r2Value}`, {
+      left: (x1 + x2) / 2,
+      top: (y1 + y2) / 2 - 18,
+      fontSize: 12,
+      fontFamily: 'Inter',
+      fontWeight: '900',
+      fill: '#fff',
+      stroke: GLOW_COLOR,
+      strokeWidth: 0.5,
+      originX: 'center',
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: '#000', blur: 4 })
+    });
+
+    const group = new fabric.Group([line, dot1, dot2, label], { selectable: false, evented: false });
+    fabricRef.current.add(group);
+    bigoFabricRef.current = group;
+    setBigoVisible(true);
+  }, [bigoVisible, canvasSize, hasImage]);
+
+  const handleToggleForma = useCallback(async () => {
+    if (formaVisible) {
+      setFormaVisible(false);
+      setMorphoResults(null);
+      if (formaFabricRef.current) {
+        fabricRef.current?.remove(formaFabricRef.current);
+        formaFabricRef.current = null;
+      }
+      return;
+    }
+
+    if (!cachedLandmarksRef.current) {
+      const img = imageRef.current;
+      if (!img) return;
+      setLoading(true);
+      try {
+        const result = await mediaPipeService.detect(img);
+        if (result?.faceLandmarks?.length) {
+          cachedLandmarksRef.current = result.faceLandmarks[0];
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (!fabricRef.current || !cachedLandmarksRef.current) return;
+
+    const W = canvasSize.width;
+    const H = canvasSize.height;
+    const landmarks = cachedLandmarksRef.current;
+    
+    // Executa a Morfometria
+    const morpho = calculateMorphometrics(landmarks);
+    if (!morpho) return;
+    const shape = classifyFaceShape(morpho);
+    setMorphoResults({ shape, metrics: morpho });
+    
+    // PONTOS ÂNCORA DA GEOMETRIA (Figura 1)
+    const pTop = landmarks[10];   // Trichion proxy (Top center)
+    const pBottom = landmarks[152]; // Menton (Bottom center)
+    const pL = landmarks[234];     // Zygion esq
+    const pR = landmarks[454];     // Zygion dir
+
+    const centerX = (pL.x + pR.x) / 2 * W;
+
+    // Fator de escala para a forma geométrica
+    const SHAPE_SCALE = 0.82; 
+    const faceWidth = distance(pL, pR) * W * SHAPE_SCALE;
+    const faceHeight = distance(pTop, pBottom) * H * SHAPE_SCALE;
+
+    // Alinhamento Y: A base da forma deve coincidir com o Menton (pBottom)
+    const centerY = pBottom.y * H - (faceHeight / 2);
+
+    let geometricShape: fabric.Object;
+    const commonProps = {
+      fill: 'rgba(88, 166, 255, 0.12)',
+      stroke: '#58a6ff',
+      strokeWidth: 1.5,
+      selectable: false,
+      evented: false,
+      left: centerX,
+      top: centerY,
+      originX: 'center',
+      originY: 'center',
+      shadow: new fabric.Shadow({ color: '#58a6ff', blur: 15 })
+    };
+
+    if (shape === 'Angular') {
+      // Hexágono (6 lados)
+      const sides = 6;
+      const angleStep = (Math.PI * 2) / sides;
+      const rX = faceWidth / 2;
+      const rY = faceHeight / 2;
+      const hexPoints = [];
+      for (let i = 0; i < sides; i++) {
+        // Rotacionar 90 graus para alinhar vértices no topo/base ou lados
+        const angle = i * angleStep - Math.PI / 2;
+        hexPoints.push({ x: Math.cos(angle) * rX, y: Math.sin(angle) * rY });
+      }
+      geometricShape = new fabric.Polygon(hexPoints, commonProps);
+    } 
+    else if (shape === 'Coração') {
+      // Triângulo Invertido (Conforme Figura 1)
+      geometricShape = new fabric.Triangle({
+        ...commonProps,
+        width: faceWidth * 1.1,
+        height: faceHeight,
+        angle: 180, // Inverter
+      });
+    } 
+    else if (shape === 'Redondo') {
+      // Círculo quase perfeito
+      geometricShape = new fabric.Circle({
+        ...commonProps,
+        radius: Math.max(faceWidth, faceHeight) / 2,
+      });
+    } 
+    else {
+      // Oval -> Elipse
+      geometricShape = new fabric.Ellipse({
+        ...commonProps,
+        rx: faceWidth / 2,
+        ry: faceHeight / 2,
+      });
+    }
+
+    // Contorno Facial Tracejado Preto (Silhueta)
+    const faceBoundaryIndices = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109];
+    
+    const boundaryPoints = faceBoundaryIndices.map(index => {
+      const lm = landmarks[index];
+      return new fabric.Point(lm.x * W, lm.y * H);
+    });
+
+    const boundaryPolygon = new fabric.Polygon(boundaryPoints, {
+      fill: 'transparent',
+      stroke: '#000000',
+      strokeWidth: 2,
+      strokeDashArray: [5, 5],
+      selectable: false,
+      evented: false,
+    });
+    
+    
+    // Altura Facial (Nasion-Menton) Emerald Glow - DIDÁTICA
+    const xH1 = landmarks[168].x * W;
+    const yH1 = landmarks[168].y * H;
+    const xH2 = landmarks[152].x * W;
+    const yH2 = landmarks[152].y * H;
+
+    const ifLine = new fabric.Line([xH1, yH1, xH2, yH2], {
+      stroke: '#52c41a',
+      strokeWidth: 2,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: '#52c41a', blur: 8 })
+    });
+
+    const label = new fabric.Text('ALTURA VERTICAL', {
+      left: xH2 + 20,
+      top: (yH1 + yH2) / 2,
+      fontSize: 10,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      fill: '#52c41a',
+      angle: 90,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      padding: 4,
+      originX: 'center',
+      selectable: false,
+      evented: false
+    });
+
+    const group = new fabric.Group([boundaryPolygon, geometricShape, ifLine, label], { selectable: false, evented: false });
+    fabricRef.current.add(group);
+    formaFabricRef.current = group;
+    setFormaVisible(true);
+  }, [formaVisible, canvasSize, hasImage]);
+
+  const handleToggleAssimetria = useCallback(async () => {
+    if (!fabricRef.current) return;
+
+    if (assimetriaVisible && assimetriaFabricRef.current) {
+      fabricRef.current.remove(assimetriaFabricRef.current);
+      assimetriaFabricRef.current = null;
+      setAssimetriaVisible(false);
+      return;
+    }
+
+    let landmarks = cachedLandmarksRef.current;
+    if (!landmarks && imageRef.current) {
+      const img = imageRef.current as HTMLImageElement;
+      const result = await mediaPipeService.detect(img);
+      if (result && result.faceLandmarks && result.faceLandmarks.length > 0) {
+        landmarks = result.faceLandmarks[0];
+        cachedLandmarksRef.current = landmarks;
+      }
+    }
+    if (!landmarks) return;
+
+    const w = canvasSize.width;
+    const h = canvasSize.height;
+
+    const getP = (idx: number) => ({ x: landmarks[idx].x * w, y: landmarks[idx].y * h });
+    
+    // Nasion (168) a Menton (152) -> Linha Média
+    const nasion = getP(168);
+    const menton = getP(152);
+
+    const getIntersect = (P: {x:number, y:number}, A: {x:number, y:number}, B: {x:number, y:number}) => {
+      const ABx = B.x - A.x;
+      const ABy = B.y - A.y;
+      const APx = P.x - A.x;
+      const APy = P.y - A.y;
+      const ab2 = ABx*ABx + ABy*ABy;
+      const t = (APx*ABx + APy*ABy) / ab2;
+      return { x: A.x + t*ABx, y: A.y + t*ABy };
+    };
+
+    const elements: fabric.Object[] = [];
+
+    // Linha Média
+    const midline = new fabric.Line([nasion.x, nasion.y, menton.x, menton.y], {
+      stroke: '#00e5ff',
+      strokeWidth: 2,
+      strokeDashArray: [10, 5],
+      selectable: false,
+      evented: false,
+      shadow: new fabric.Shadow({ color: '#00e5ff', blur: 15, offsetX: 0, offsetY: 0 })
+    });
+    elements.push(midline);
+
+    const zyL = getP(234); const zyR = getP(454);
+    const goL = getP(172); const goR = getP(397);
+    const teL = getP(127); const teR = getP(356);
+
+    const checkRatio = (dLeft: number, dRight: number): { leftColor: string, rightColor: string } => {
+      const ratio = dLeft / dRight;
+      if (ratio < 0.85) return { leftColor: '#52c41a', rightColor: '#ff4d4f' }; // Highlight error Red
+      if (ratio > 1.18) return { leftColor: '#ff4d4f', rightColor: '#52c41a' }; 
+      return { leftColor: '#00e5ff', rightColor: '#00e5ff' }; 
+    };
+
+    const drawLine = (pt: {x:number, y:number}, color: string, labelText: string) => {
+      const intersect = getIntersect(pt, nasion, menton);
+      const line = new fabric.Line([pt.x, pt.y, intersect.x, intersect.y], {
+        stroke: color, strokeWidth: 2, strokeDashArray: [5, 5],
+        selectable: false, evented: false, opacity: 0.8,
+        shadow: new fabric.Shadow({ color: color, blur: 5, offsetX: 0, offsetY: 0 })
+      });
+      const dot = new fabric.Circle({
+        left: pt.x, top: pt.y, radius: 4, fill: color, originX: 'center', originY: 'center',
+        selectable: false, evented: false
+      });
+      const label = new fabric.Text(labelText, {
+        left: pt.x < intersect.x ? pt.x - 10 : pt.x + 10,
+        top: pt.y - 15,
+        fontSize: 16,
+        fill: color,
+        originX: pt.x < intersect.x ? 'right' : 'left',
+        originY: 'bottom',
+        fontFamily: 'Inter, sans-serif',
+        selectable: false,
+        evented: false,
+        shadow: new fabric.Shadow({ color: '#000', blur: 6, offsetX: 1, offsetY: 1 })
+      });
+      elements.push(line, dot, label);
+    };
+
+    // Calculate real distances to check threshold for visuals
+    const dist = (p1: {x:number,y:number}, p2: {x:number,y:number}) => Math.sqrt(Math.pow(p1.x-p2.x,2)+Math.pow(p1.y-p2.y,2));
+    const dZyL = dist(zyL, getIntersect(zyL, nasion, menton));
+    const dZyR = dist(zyR, getIntersect(zyR, nasion, menton));
+    const zyColors = checkRatio(dZyL, dZyR);
+    drawLine(zyL, zyColors.leftColor, `Zy Esq`); drawLine(zyR, zyColors.rightColor, `Zy Dir`);
+
+    const dGoL = dist(goL, getIntersect(goL, nasion, menton));
+    const dGoR = dist(goR, getIntersect(goR, nasion, menton));
+    const goColors = checkRatio(dGoL, dGoR);
+    drawLine(goL, goColors.leftColor, `Go Esq`); drawLine(goR, goColors.rightColor, `Go Dir`);
+
+    const dTeL = dist(teL, getIntersect(teL, nasion, menton));
+    const dTeR = dist(teR, getIntersect(teR, nasion, menton));
+    const teColors = checkRatio(dTeL, dTeR);
+    drawLine(teL, teColors.leftColor, `Te Esq`); drawLine(teR, teColors.rightColor, `Te Dir`);
+
+    const group = new fabric.Group(elements, { selectable: false, evented: false });
+    fabricRef.current.add(group);
+    assimetriaFabricRef.current = group;
+    setAssimetriaVisible(true);
+  }, [assimetriaVisible, canvasSize, hasImage]);
+
+  const handleToggleTreatment = useCallback(async () => {
+    if (!fabricRef.current) return;
+
+    if (treatmentVisible && treatmentFabricRef.current) {
+      fabricRef.current.remove(treatmentFabricRef.current);
+      treatmentFabricRef.current = null;
+      setTreatmentVisible(false);
+      return;
+    }
+
+    let landmarksData = cachedLandmarksRef.current;
+    if (!landmarksData && imageRef.current) {
+      const img = imageRef.current as HTMLImageElement;
+      const result = await mediaPipeService.detect(img);
+      if (result && result.faceLandmarks && result.faceLandmarks.length > 0) {
+        landmarksData = result.faceLandmarks[0];
+        cachedLandmarksRef.current = landmarksData;
+      }
+    }
+    if (!landmarksData) return;
+
+    const metrics = calculateMorphometrics(landmarksData);
+    if (!metrics) return;
+    const shape = classifyFaceShape(metrics);
+    const plan = getABFaceTreatmentPlan(shape);
+
+    const w = canvasSize.width;
+    const h = canvasSize.height;
+    const elements: fabric.Object[] = [];
+
+    // Title / Primary Action Header
+    const titleText = new fabric.Text(`Padrão: ${shape.toUpperCase()} | ${plan.primaryAction}`, {
+      left: w / 2,
+      top: 40,
+      fontSize: 18,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      fill: '#ffffff',
+      originX: 'center',
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      padding: 10,
+      selectable: false,
+      evented: false
+    });
+    elements.push(titleText);
+
+    plan.areas.filter(a => a.priority !== 'Hide').forEach(area => {
+      const opacity = area.priority === 'High' ? 0.8 : 0.4;
+      const radius = area.priority === 'High' ? 12 : 8;
+
+      if (area.id === 'JL') {
+        const pts = area.landmarks.map(idx => new fabric.Point(landmarksData![idx].x * w, landmarksData![idx].y * h));
+        const line = new fabric.Polyline(pts, {
+          stroke: area.color, 
+          strokeWidth: area.priority === 'High' ? 8 : 4, 
+          fill: 'transparent',
+          opacity, 
+          shadow: new fabric.Shadow({ color: area.color, blur: 15 }), 
+          selectable: false, 
+          evented: false,
+          strokeLineJoin: 'round',
+          strokeLineCap: 'round'
+        });
+        elements.push(line);
+      } else {
+        area.landmarks.forEach(idx => {
+          const cx = landmarksData![idx].x * w;
+          const cy = landmarksData![idx].y * h + (area.id === 'SM' ? 30 : 0); // Offset for Submental
+          
+          const dot = new fabric.Circle({
+            left: cx, 
+            top: cy, 
+            radius, 
+            fill: area.color, 
+            originX: 'center', 
+            originY: 'center', 
+            opacity,
+            shadow: new fabric.Shadow({ color: area.color, blur: 20 }), 
+            selectable: false, 
+            evented: false
+          });
+          elements.push(dot);
+
+          // Rótulo da área apenas nos priorities altos
+          if (area.priority === 'High') {
+            const label = new fabric.Text(area.id, {
+              left: cx + 15,
+              top: cy - 15,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              fontWeight: 'bold',
+              fill: area.color,
+              selectable: false,
+              evented: false,
+              shadow: new fabric.Shadow({ color: '#000', blur: 4 })
+            });
+            elements.push(label);
+          }
+        });
+      }
+    });
+
+    const group = new fabric.Group(elements, { selectable: false, evented: false });
+    fabricRef.current.add(group);
+    treatmentFabricRef.current = group;
+    setTreatmentVisible(true);
+  }, [treatmentVisible, canvasSize, hasImage]);
+
   const getCombinedCanvas = useCallback(() => {
     const mpCanvas = mediapipeCanvasRef.current;
     if (!mpCanvas || !fabricRef.current) return null;
@@ -1036,12 +1603,9 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
 
   return (
     <div className={`${styles.workspace} ${isMobile ? styles.workspaceMobile : ''}`}>
+      {/* MENU LATERAL ESQUERDO (Apenas Clínico/Análise) */}
       <aside className={isMobile ? styles.toolbarMobile : styles.sidebar}>
         <div className={styles.toolsGroup}>
-          <label className={styles.uploadLabel}>
-            Upload Foto
-            <input type="file" onChange={handleFileUpload} accept="image/*" hidden />
-          </label>
           <Button
             variant="primary"
             onClick={handleToggleLandmarks}
@@ -1050,21 +1614,6 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
             className={landmarksVisible ? styles.btnActive : undefined}
           >
             {landmarksVisible ? 'Ocultar Landmarks' : 'Mapear Landmarks'}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleSave}
-            disabled={!hasCachedLandmarks || saving}
-            isLoading={saving}
-          >
-            Salvar Avaliação
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleDownload}
-            disabled={!hasCachedLandmarks}
-          >
-            Download PNG
           </Button>
 
           <div className={styles.anatomiaWrapper}>
@@ -1339,6 +1888,171 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
               </div>
             )}
           </div>
+
+          <div className={styles.anatomiaWrapper} style={{ marginTop: '12px' }}>
+            <button
+              className={`${styles.anatomiaBtn} ${metricasOpen ? styles.anatomiaBtnOpen : ''}`}
+              onClick={() => setMetricasOpen(o => !o)}
+              disabled={!hasImage}
+            >
+              <span>Métricas</span>
+              <span className={styles.anatomiaChevron}>{metricasOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {metricasOpen && (
+              <div className={styles.anatomiaMenu}>
+                <button
+                  className={`${styles.anatomiaItem} ${biziVisible ? styles.anatomiaItemActive : ''}`}
+                  onClick={handleToggleBizi}
+                  disabled={!hasImage || loading}
+                >
+                  {biziVisible ? 'Ocultar Dist. Bizigomática' : 'Distância Bizigomática'}
+                </button>
+
+                <button
+                  className={`${styles.anatomiaItem} ${bigoVisible ? styles.anatomiaItemActive : ''}`}
+                  onClick={handleToggleBigo}
+                  disabled={!hasImage || loading}
+                >
+                  {bigoVisible ? 'Ocultar Dist. Bigonial' : 'Distância Bigonial'}
+                </button>
+
+                <button
+                  className={`${styles.anatomiaItem} ${formaVisible ? styles.anatomiaItemActive : ''}`}
+                  onClick={handleToggleForma}
+                  disabled={!hasImage || loading}
+                >
+                  {formaVisible ? 'Ocultar Forma Facial' : 'Forma Facial'}
+                </button>
+
+                <button
+                  className={`${styles.anatomiaItem} ${assimetriaVisible ? styles.anatomiaItemActive : ''}`}
+                  onClick={handleToggleAssimetria}
+                  disabled={!hasImage || loading}
+                >
+                  {assimetriaVisible ? 'Ocultar Assimetria' : 'Assimetria Facial'}
+                </button>
+
+                <button
+                  className={`${styles.anatomiaItem} ${treatmentVisible ? styles.anatomiaItemActive : ''}`}
+                  onClick={handleToggleTreatment}
+                  disabled={!hasImage || loading}
+                  style={treatmentVisible ? { background: 'linear-gradient(90deg, #1E62C4, #E8CA31)' } : {}}
+                >
+                  {treatmentVisible ? 'Ocultar Tratamento' : 'Plano AB Face'}
+                </button>
+
+                {morphoResults && formaVisible && (
+                  <div className={styles.sliderGroup} style={{ marginTop: '12px', background: 'rgba(0,0,0,0.4)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(88,166,255,0.2)' }}>
+                    <h4 style={{ color: '#fff', fontSize: '12px', margin: '0 0 6px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px' }}>
+                      Padrão: <strong style={{ color: '#58a6ff', textTransform: 'uppercase' }}>{morphoResults.shape}</strong>
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '10px', color: '#ccc' }}>
+                      <div title={`Largura Bigonial vs Bizigomática (Regra 2)`}>
+                        <span style={{color: '#888'}}>R2:</span> 
+                        <span style={{float: 'right', fontWeight: 'bold'}}>{morphoResults.metrics.r2.toFixed(3)}</span>
+                      </div>
+                      <div title={`Largura Temporal vs Bizigomática (Regra 4)`}>
+                        <span style={{color: '#888'}}>R3:</span> 
+                        <span style={{float: 'right', fontWeight: 'bold'}}>{morphoResults.metrics.r3.toFixed(3)}</span>
+                      </div>
+                      <div title={`Proporção Altura/Largura (Regra 5)`}>
+                        <span style={{color: '#888'}}>IF:</span> 
+                        <span style={{float: 'right', fontWeight: 'bold'}}>{morphoResults.metrics.if.toFixed(1)}</span>
+                      </div>
+                      <div title={`Linearidade Mandibular (Regra 3)`}>
+                        <span style={{color: '#888'}}>L:</span> 
+                        <span style={{float: 'right', fontWeight: 'bold', color: morphoResults.metrics.l >= 0.985 ? '#ff4d4f' : 'inherit'}}>{morphoResults.metrics.l.toFixed(3)}</span>
+                      </div>
+                      <div title={`Ângulo do queixo`} style={{ gridColumn: 'span 2' }}>
+                        <span style={{color: '#888'}}>Mento:</span> 
+                        <span style={{float: 'right', fontWeight: 'bold'}}>{morphoResults.metrics.theta.toFixed(1)}°</span>
+                      </div>
+                      
+                      {morphoResults.metrics.asymmetry && (
+                        <div style={{ gridColumn: 'span 2', marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '6px' }}>
+                          <h4 style={{ 
+                            color: morphoResults.metrics.asymmetry.isAsymmetric ? '#faad14' : '#52c41a', 
+                            fontSize: '11px', margin: '0 0 4px 0', fontWeight: 'bold', textTransform: 'uppercase'
+                          }}>
+                            {morphoResults.metrics.asymmetry.isAsymmetric ? '⚠️ Assimetria (Esq/Dir)' : '✓ Simetria Estrutural'}
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2px', fontSize: '10px' }}>
+                            <div title="Razão Esq/Dir Zigomática">
+                              <span style={{color: '#888'}}>Zigoma:</span> 
+                              <span style={{float: 'right', color: (morphoResults.metrics.asymmetry.zyRatio < 0.85 || morphoResults.metrics.asymmetry.zyRatio > 1.18) ? '#faad14' : 'inherit'}}>
+                                {morphoResults.metrics.asymmetry.zyRatio.toFixed(2)}
+                              </span>
+                            </div>
+                            <div title="Razão Esq/Dir Gonial">
+                              <span style={{color: '#888'}}>Gonion:</span> 
+                              <span style={{float: 'right', color: (morphoResults.metrics.asymmetry.goRatio < 0.85 || morphoResults.metrics.asymmetry.goRatio > 1.18) ? '#faad14' : 'inherit'}}>
+                                {morphoResults.metrics.asymmetry.goRatio.toFixed(2)}
+                              </span>
+                            </div>
+                            <div title="Razão Esq/Dir Temporal">
+                              <span style={{color: '#888'}}>Têmpora:</span> 
+                              <span style={{float: 'right', color: (morphoResults.metrics.asymmetry.teRatio < 0.85 || morphoResults.metrics.asymmetry.teRatio > 1.18) ? '#faad14' : 'inherit'}}>
+                                {morphoResults.metrics.asymmetry.teRatio.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {hasCachedLandmarks && (
+          <span className={`${styles.statusBadge} ${!landmarksVisible ? styles.statusBadgeOff : ''}`} style={{ marginTop: 'auto' }}>
+            {landmarksVisible ? '478 ativos' : '478 ocultos'}
+          </span>
+        )}
+      </aside>
+
+      <div
+        ref={containerRef}
+        className={styles.canvasContainer}
+        style={{ cursor: hasImage ? 'grab' : 'default' }}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopDrag}
+        onMouseLeave={stopDrag}
+      >
+        <div
+          className={styles.canvasWrapper}
+          style={{
+            width: canvasSize.width,
+            height: canvasSize.height,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: 'center center',
+          }}
+        >
+          <canvas ref={mediapipeCanvasRef} className={styles.mediapipeCanvas} />
+          <canvas ref={fabricCanvasElRef} className={styles.fabricCanvas} />
+        </div>
+      </div>
+
+      {/* MENU LATERAL DIREITO (Ações Globais) */}
+      <aside className={isMobile ? styles.toolbarMobile : styles.sidebarRight}>
+        <div className={styles.toolsGroup}>
+          <label className={styles.uploadLabel}>
+            Upload Foto
+            <input type="file" onChange={handleFileUpload} accept="image/*" hidden />
+          </label>
+          <Button
+            variant="secondary"
+            onClick={handleDownload}
+            disabled={!hasCachedLandmarks}
+            style={{ fontWeight: 600 }}
+          >
+            Salvar
+          </Button>
         </div>
 
         <div className={styles.sidebarDivider} />
@@ -1364,38 +2078,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
             title="Resetar zoom e posição"
           >1:1</button>
         </div>
-
-        {hasCachedLandmarks && (
-          <span className={`${styles.statusBadge} ${!landmarksVisible ? styles.statusBadgeOff : ''}`}>
-            {landmarksVisible ? '478 ativos' : '478 ocultos'}
-          </span>
-        )}
       </aside>
-
-      <div
-        ref={containerRef}
-        className={styles.canvasContainer}
-        style={{ cursor: hasImage ? 'grab' : 'default' }}
-        onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={stopDrag}
-        onMouseLeave={stopDrag}
-      >
-        <div
-          className={styles.canvasWrapper}
-          style={{
-            width: canvasSize.width,
-            height: canvasSize.height,
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: 'center center',
-          }}
-        >
-          {/* width/height gerenciados APENAS via ref — atributos JSX apagariam o canvas no re-render */}
-          <canvas ref={mediapipeCanvasRef} className={styles.mediapipeCanvas} />
-          <canvas ref={fabricCanvasElRef} className={styles.fabricCanvas} />
-        </div>
-      </div>
     </div>
   );
 };

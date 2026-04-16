@@ -23,6 +23,19 @@
   align-items: stretch ;
 }
 
+.sidebarRight {
+  display: flex ;
+  flex-direction: column ;
+  gap: 12px ;
+  width: 168px ;
+  flex-shrink: 0 ;
+  padding: 16px 12px ;
+  background: var(--surface-primary) ;
+  border: 1px solid var(--border-primary) ;
+  border-radius: 12px ;
+  align-items: stretch ;
+}
+
 .toolbarMobile {
   display: flex ;
   flex-direction: row ;
