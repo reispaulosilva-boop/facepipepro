@@ -66,7 +66,11 @@ async def analyze_all(file: UploadFile = File(...)):
     """
     image_path = "temp_image.jpg"
     
-    # Executamos as funções modulares
+    # 1. Salvar o arquivo no disco para os modulos (YOLO, OpenCV) poderem ler
+    with open(image_path, "wb") as buffer:
+        buffer.write(await file.read())
+        
+    # 2. Executamos as funções modulares
     return {
         "status": "success",
         "global_score": 88, # Cálculo empírico da saudabilidade
