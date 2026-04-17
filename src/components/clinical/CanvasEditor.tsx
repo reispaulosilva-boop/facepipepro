@@ -1173,8 +1173,8 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ onImageChange }) => 
       evented: false,
       left: centerX,
       top: centerY,
-      originX: 'center',
-      originY: 'center',
+      originX: 'center' as const,
+      originY: 'center' as const,
       shadow: new fabric.Shadow({ color: '#58a6ff', blur: 15 })
     };
 
